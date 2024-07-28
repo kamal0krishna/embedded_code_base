@@ -1,0 +1,157 @@
+//blink code// (write in while(1) pf) ------------------------ 1
+
+HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);  // PA5 --> LD2 LED should be set as GPIO_Output  in CUbe Mx
+HAL_Delay(1000);
+HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET);  // PA5 --> LD2 LED 
+HAL_Delay(1000);
+
+\\end\\
+
+
+//to use breakpoints ----------------------------------------- 2
+//debug session --- enable the debug in Cube Mx... Go to SYS --> enable as SERIAL WIRE//
+
+uint16_t count; // should be declared globally
+
+ // written in while (1)
+HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);  // PA5 --> LD2 LED should be set as GPIO_Output  in CUbe Mx
+HAL_Delay(1000);
+HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET);  // PA5 --> LD2 LED 
+HAL_Delay(1000);
+count++;
+
+\\end\\
+
+
+
+//Interfacing PUSH BUTTON ------------------------------------ 3
+
+
+** User button GPIO_PIN_13 should be defined as GPIO_input
+** LD2 LED should be declared as GPIO_output
+
+uint16_t button_state; // should be declared globally
+
+// write in while(1)
+
+button_state = HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_13);
+if(button_state == 0)
+{
+  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_SET);
+}
+else{
+  HAL_GPIO_WritePin(GPIOA,GPIO_PIN_5,GPIO_PIN_RESET);
+}
+
+\\end\\
+
+
+
+//External Interrupt Programming in STM32F4: ----------------- 4
+
+**In STM32CUbe Mx ----> set GPIOA_PIN_5 as GPIO_ output and GPIO_PIN_13 as GPIO_EXTI13
+** To enable external interupt ----> Go to System Core —>GPIO —> NVIC —> check enabled.
+** Then Go to GPIO in system Core -----> select PC13 and scroll down for configuration -----> set GPIO mode as RISISNG EDGE TRIGGER DETECTION (pull up logic)
+**  Interrupt can be found in stm32f4xx_it.c file.
+
+** CODE TO WRITE IN Void EXTI15_10_IRQHandler(void) **
+
+uint32_t i;
+
+HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5);
+
+for(i=0;i<1000000;i++){};
+
+HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
+
+\\end\\
+
+
+
+//Timer Interrupt Configuration and Calculation in STM32 Cube Mx : ------------- 5
+
+**set GPIOA_PIN_5 as GPIO_ output 
+** go to Timer ----> go to TIM6 ---->  parameter settings ----> prescalar = 15999, period =1000
+** To enable external interupt ----> Go to System Core —>GPIO —> NVIC —> check enabled.
+
+**  Timer can be found in stm32f4xx_it.c file.
+
+HAL_TIM_Base_Start_IT(htim6); // In main.c file in above while(1)
+
+** CODE TO WRITE IN Void TIM6_DAC_IRQHandler(void) **
+
+
+HAL_GPIO_TogglePin(GPIOA,GPIO_PIN_5); 
+
+\\end\\
+
+
+
+
+//Timer Output Compare Mode Programming in STM32F446RE: ---------------- 6
+
+**GPIO_PIN_PA5 should be selected as TIMER 2-CH1 of output compare mode.
+Then click on the TIMERS tab —> select Timer 2 ------->Change the clock source to INTERNAL CLOCK and Channel 1 to Output compare CH1.
+
+** change the timer configuration of TIMER 2 ---> prescalor = 15999, Period = 1000,
+channel 1 = TIMER 2, Period value for compare register and enable the interrupt ---> chnage OUTPUT COMPARE MODE to toggle on match and pulse to 1000
+
+
+
+** code to write above while(1) IN main.c file**
+
+HAL_TIM_OC_Start(&htim2,TIM_CHANNEL_1);
+ 
+//The interrupt is not in use as it's just generating the timer pulse of 2 seconds and a duty cycle of 50%. The LED started blinking once in one second, which means whenever the timer value matches with the compare register the GPIO_PIN_5 was toggled in its state.
+
+
+\\end\\
+
+
+
+//Timer Input Capture Mode Configuration and Calculation in STM32 Cube Mx: ---------> 7
+
+***Select TIM2_CH1 for the GPIO_PIN_PA0.
+***Select Timer in SYSTEM CORE —> Select TIM2 —> enable Input Capture mode for the channel 1.
+***select RISING EDGE for Polarity selection in parameter settings, enable the interrupt in NVIC settings, Configure prescalor = 15999, period = 1000,
+
+
+// initiate 2 variables globally in main.c file //
+
+uint32_t counter,capture;
+
+** code to be written in main.c file above while(1) **
+
+HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_1);
+
+** code to write in while(1) in main.c file **
+
+counter = HAL_TIM2_GetCounter(&htim2);
+
+
+** code to write in stm32f4xx_it.c file in VOID TIM2_IRQHandler() function***
+
+capture = HAL_TIM2__GetCounter(&htim2);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
