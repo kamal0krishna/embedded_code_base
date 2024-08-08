@@ -113,7 +113,7 @@ HAL_TIM_OC_Start(&htim2,TIM_CHANNEL_1);
 
 ***Select TIM2_CH1 for the GPIO_PIN_PA0.
 ***Select Timer in SYSTEM CORE —> Select TIM2 —> enable Input Capture mode for the channel 1.
-***select RISING EDGE for Polarity selection in parameter settings, enable the interrupt in NVIC settings, Configure prescalor = 15999, period = 1000,
+***select RISING EDGE for Polarity selection in parameter settings, enable the interrupt in NVIC settings, Configure prescalor = 15999, period = 65535,
 
 
 // initiate 2 variables globally in main.c file //
@@ -132,6 +132,57 @@ counter = HAL_TIM2_GetCounter(&htim2);
 ** code to write in stm32f4xx_it.c file in VOID TIM2_IRQHandler() function***
 
 capture = HAL_TIM2__GetCounter(&htim2);
+
+\\end\\
+
+//PWM SIGNAL GENERATION IN STM32F446RE --------------------> 8
+
+** make the GPIO_PIN_PA5 to be TIM2_CH1.
+**Click on the Timers tab and select the TIM2 —> select the clock source as the Internal clock and select Channel 1 as the  PWM Generation Chart.
+**Configure prescalor = 15, period = 1000,pulse value for compare register
+**Change the Pulse value to 500 and the CH Polarity to High.
+The CH Polarity is nothing but an option given to change the on-time and off-time of the PWM Signal. Generate the code.
+
+
+* code to be written in main.c file above while(1) *
+
+HAL_TIM_PWM_Start_IT(&htim2,TIM_CHANNEL_1);
+uint16_t dutycycle;
+
+* code to write in while(1) in main.c file *
+
+dutycycle = dutycycle + 100;
+if(dutycycle == 1000)
+ {
+   dutycycle = 100;
+  }
+ htim2.Instance->CCR1 = dutycycle;
+ HAL_Delay(500);
+
+
+
+
+
+//Serial (UART) Communication Transmitting data in STM32F446RE: --------> 9
+
+** Select PA2 pin as USART2_TX and PA3 pin as USART2_RX.
+**Select the  Connectivity panel —> select the  USART2 then —> select the Mode as  Asynchronous and set the Baud rate to 9600 Bits/s.
+**Then go to NVIC  and check the box for USART2 Global Interrupt.
+**Name the project and then generate code, open in any IDE.
+
+
+There will be a pre-defined variable huart2,We give the address of the above variable and the buffer we created globally in the while loop.
+
+
+** buffer to be created 
+
+uint8_t tx_data[6] = "Hello";
+
+
+* code to be written in while(1) of main.c file* 
+
+HAL_UART_Transmit(&huart2,tx_data,5,10);
+HAL_Delay(1000);
 
 
 
